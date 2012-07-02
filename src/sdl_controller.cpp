@@ -3,11 +3,12 @@
 SDL_controller::SDL_controller()
 {
   init();
+  do_draw = false;
 }
 
 void SDL_controller::init()
 {
-  if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+  if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_EVENTTHREAD ) < 0 )
   {
     fprintf(stderr, "Unable to init SDL: %s", SDL_GetError());
     exit(EXIT_FAILURE);
@@ -34,23 +35,99 @@ void SDL_controller::init()
   src.w = SCREEN_WIDTH - 100; src.h = SCREEN_HEIGTH;
   SDL_BlitSurface(drawingArea, &src, screen, &lay_coord);
   SDL_Flip(screen);
+  SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 }
 
-SDL_Event SDL_controller::get_event()
+Controller_event SDL_controller::get_event()
 {
+  Controller_event res;
   SDL_Event event;
-  SDL_WaitEvent(&event);
-  switch ( event.type )
+  while ( SDL_PollEvent(&event) )
   {
-    case SDL_MOUSEMOTION:
-      if ( event.motion.state & SDL_BUTTON(1) )
-        put_pixel(event.motion.x, event.motion.y);
-      break;
-    case SDL_QUIT:
-      printf("Exiting...\n");
-      exit(0);
+    switch ( event.type )
+    {
+      case SDL_KEYDOWN:
+        if ( event.key.keysym.sym == SDLK_F11 )
+          redraw();
+        break;
+      case SDL_MOUSEBUTTONDOWN:
+        if ( event.button.button == SDL_BUTTON_LEFT )
+        {
+          do_draw = true;
+          res.type = BEGIN_DRAW;
+          Coord* data = new Coord(event.button.x, event.button.y);
+          res.data = (void*) data;
+        }
+        break;
+      case SDL_MOUSEBUTTONUP:
+        if ( event.button.button == SDL_BUTTON_LEFT )
+          do_draw = false;
+        break;  
+//       case SDL_MOUSEMOTION:
+//         if ( event.motion.state & SDL_BUTTON(1) )
+//           put_pixel(event.motion.x, event.motion.y);
+//         break;
+      case SDL_QUIT:
+        printf("Exiting...\n");
+        exit(0);
+    }
   }
-  return event;
+  return res;
+}
+
+vector<Pixel_list_el> SDL_controller::process_mouse_movement(Coord* last_pos)
+{
+  int x = 0, y = 0;
+  if ( do_draw )
+  {
+    SDL_GetMouseState(&x, &y);
+    vector<Pixel_list_el> res = draw_line(last_pos->x, last_pos->y, x, y);
+  }
+  last_pos->x = x; last_pos->y = y;
+  return res;
+}
+
+vector<Pixel_list_el> SDL_controller::draw_line(int x1, int y1, int x2, int y2)
+{
+  vector<Pixel_list_el> res;
+  const int deltaX = abs(x2 - x1);
+  const int deltaY = abs(y2 - y1);
+  const int signX = x1 < x2 ? 1 : -1;
+  const int signY = y1 < y2 ? 1 : -1;
+
+  int error = deltaX - deltaY;
+  int lastX = -1, lastY = -1;
+  
+  put_pixel(x2, y2);
+  while (x1 != x2 || y1 != y2)
+  {
+    put_pixel(x1, y1);
+    
+    if ( lastX != -1 || lastY != -1 )
+      res.push_back( Pixel_list_el(Coord(lastX,lastY), Decision(x1-lastX, y1-lastY) ) );
+    lastX = x1; lastY = y1;
+    
+    const int error2 = error * 2;
+    if (error2 > -deltaY)
+    {
+      error -= deltaY;
+      x1 += signX;
+    }
+    if (error2 < deltaX)
+    {
+      error += deltaX;
+      y1 += signY;
+    }
+  }
+}
+
+void SDL_controller::redraw()
+{
+  SDL_Rect lay_coord; lay_coord.x = 0; lay_coord.y = 0;
+  SDL_Rect src; src.x = 0; src.y = 0;
+  src.w = SCREEN_WIDTH - 100; src.h = SCREEN_HEIGTH;
+  SDL_BlitSurface(drawingArea, &src, screen, &lay_coord);
+  SDL_Flip(screen);
 }
 
 void SDL_controller::set_state_of_screen(Extended_array<bool>* pixels)
@@ -70,12 +147,6 @@ void SDL_controller::put_pixel(int x, int y)
   slock(drawingArea);
   draw_pixel(drawingArea, x, y, 0, 0, 0);
   sulock(drawingArea);
-  
-  SDL_Rect lay_coord; lay_coord.x = 0; lay_coord.y = 0;
-  SDL_Rect src; src.x = 0; src.y = 0;
-  src.w = SCREEN_WIDTH - 100; src.h = SCREEN_HEIGTH;
-  SDL_BlitSurface(drawingArea, &src, screen, &lay_coord);
-  SDL_Flip(screen);
 }
 
 void SDL_controller::draw_pixel(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)

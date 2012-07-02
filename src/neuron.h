@@ -7,12 +7,15 @@
 class Neuron
 {
 public:
-  Neuron(Bounds bounds);
+  Neuron(Bounds bounds, int id);
   double get_result_sum(Field* field);
   void correct_answer(Field* field);
+  void load_cache();
+  void save_cache();
 
 private:
   Extended_array<double>* coeffs;
+  int id;
   
 };
 

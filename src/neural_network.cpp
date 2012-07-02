@@ -3,7 +3,20 @@
 Neural_network::Neural_network(Bounds bounds)
 {
   for (int i = 0; i < 8; ++i)
-    neurons[i] = new Neuron(bounds);
+    neurons[i] = new Neuron(bounds, i);
+  load_cache();
+}
+
+void Neural_network::load_cache()
+{
+  for (int i = 0; i < 8; ++i)
+    neurons[i]->load_cache();
+}
+
+void Neural_network::save_cache()
+{
+  for (int i = 0; i < 8; ++i)
+    neurons[i]->save_cache();
 }
 
 Decision Neural_network::make_decision(Field* field, bool do_correction, Decision rigth_answer)
