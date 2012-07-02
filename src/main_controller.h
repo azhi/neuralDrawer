@@ -24,7 +24,7 @@ private:
   Neural_network* neural_network;
   bool education_mode;
   Coord draw_begin_coordinates;
-  Coord last;
+  Coord* last;
   
 };
 

@@ -31,7 +31,7 @@ Decision Neural_network::make_decision(Field* field, bool do_correction, Decisio
       max_sum = result_sums[i];
       max_sum_index = i;
     }
-  
+    
   Decision res;
   switch (max_sum_index)
   {

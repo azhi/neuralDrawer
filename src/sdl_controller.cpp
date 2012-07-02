@@ -78,10 +78,11 @@ Controller_event SDL_controller::get_event()
 vector<Pixel_list_el> SDL_controller::process_mouse_movement(Coord* last_pos)
 {
   int x = 0, y = 0;
+  vector<Pixel_list_el> res;
   if ( do_draw )
   {
     SDL_GetMouseState(&x, &y);
-    vector<Pixel_list_el> res = draw_line(last_pos->x, last_pos->y, x, y);
+    res = draw_line(last_pos->x, last_pos->y, x, y);
   }
   last_pos->x = x; last_pos->y = y;
   return res;
@@ -119,6 +120,7 @@ vector<Pixel_list_el> SDL_controller::draw_line(int x1, int y1, int x2, int y2)
       y1 += signY;
     }
   }
+  return res;
 }
 
 void SDL_controller::redraw()

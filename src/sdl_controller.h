@@ -4,6 +4,9 @@
 #include <SDL/SDL.h>
 #include "extended_array.h"
 #include "neural_network.h"
+#include <vector>
+
+using namespace std;
 
 #define SCREEN_WIDTH 500
 #define SCREEN_HEIGTH 300
@@ -34,7 +37,7 @@ struct Pixel_list_el
   Pixel_list_el() : abs_coordinates( Coord() ), rel_next( Decision() ) {}
   Pixel_list_el(Coord coord, Decision decision) : abs_coordinates( coord ),
                                                   rel_next( decision ) {}
-}
+};
 
 class SDL_controller
 {
@@ -44,7 +47,7 @@ public:
   void set_state_of_screen(Extended_array<bool>* pixels);
   Controller_event get_event();
   void redraw();
-  vector<Pixel_list_el> process_mouse_movement(Coord last_pos);
+  vector<Pixel_list_el> process_mouse_movement(Coord* last_pos);
 
 private:
   SDL_Surface* screen;
