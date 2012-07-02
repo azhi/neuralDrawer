@@ -6,8 +6,9 @@
 struct Decision
 {
   int dx, dy;
+  Decision() : dx(0), dy(0) {}
   Decision(int dx, int dy) : dx(dx), dy(dy) {}
-}
+};
 
 class Neural_network
 {
@@ -16,7 +17,7 @@ public:
   Decision make_decision(Field* field, bool do_correction, Decision rigth_answer);
 
 private:
-  Neuron neurons[8];
+  Neuron* neurons[8];
   
 };
 

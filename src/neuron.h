@@ -8,11 +8,11 @@ class Neuron
 {
 public:
   Neuron(Bounds bounds);
-  long get_result_sum(Field* field)
-  void correct_answer();
+  double get_result_sum(Field* field);
+  void correct_answer(Field* field);
 
 private:
-  Extended_array<int>* coeff;
+  Extended_array<double>* coeffs;
   
 };
 

@@ -17,7 +17,7 @@ set (SOURCES
     field.cpp
     field.h
     
-    extended_array.cpp
+    
     extended_array.h
 
     sdl_controller.cpp
