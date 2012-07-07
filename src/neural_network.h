@@ -14,6 +14,7 @@ class Neural_network
 {
 public:
   Neural_network(Bounds bounds);
+  ~Neural_network();
   Decision make_decision(Field* field, bool do_correction, Decision* rigth_answer);
   void load_cache();
   void save_cache();

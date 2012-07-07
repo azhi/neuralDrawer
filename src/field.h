@@ -17,8 +17,10 @@ class Field
 {
 public:
   Field(Bounds bounds);
+  ~Field();
   void add_pixel(int x, int y);
   list<Field_list_element>* get_pixels_list();
+  size_t get_size();
   void clear();
   
   Bounds bounds;

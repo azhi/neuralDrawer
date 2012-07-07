@@ -16,7 +16,7 @@ list<Field_list_element> Main_controller::get_picture()
   set_begin_coordinates(begin);
   init_nn_and_field(begin);
   neural_network->load_cache();
-  for (int i=0; i<100; ++i)
+  for (int i=0; i<350; ++i)
   {
     Decision dec = neural_network->make_decision(field, false, NULL);
     last->x = last->x+dec.dx; last->y = last->y + dec.dy;
@@ -42,6 +42,8 @@ void Main_controller::process_line()
 
 void Main_controller::init_nn_and_field(Coord* bc)
 {
+  delete field;
+  delete neural_network;
   field = new Field(Bounds(-bc->x, SCREEN_WIDTH - bc->x, -bc->y, SCREEN_HEIGTH - bc->y));
   field->add_pixel(0, 0);
   neural_network = new Neural_network(Bounds(-bc->x, SCREEN_WIDTH - bc->x, -bc->y, SCREEN_HEIGTH - bc->y));
@@ -73,14 +75,19 @@ void Main_controller::main_loop()
       case BEGIN_DRAW:
       {
         Coord* data = (Coord*) event.data;
+	printf("setting begin coordinates...\n");
         set_begin_coordinates(data);
+	printf("initialazing NN and field...\n");
         init_nn_and_field(data);
 	cur_picture->clear();
         break;
       }
       case END_DRAW:
+	printf("loading cache...\n");
 	neural_network->load_cache();
+	printf("starting processing line...\n");
 	process_line();
+	printf("saving cache...\n");
 	neural_network->save_cache();
 	printf("Finished education!\n");
 	break;
