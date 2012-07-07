@@ -4,24 +4,46 @@ Main_controller::Main_controller()
 {
   sdl_controller = new SDL_controller();
   last = new Coord();
+  cur_picture = new list<Field_list_element>;
   education_mode = true;
 }
 
-void Main_controller::draw_by_neural_network()
+list<Field_list_element> Main_controller::get_picture()
 {
-  
+  list<Field_list_element> res;
+  Coord* begin = new Coord(100, 100);
+  res.push_back(Field_list_element(begin->x, begin->y));
+  set_begin_coordinates(begin);
+  init_nn_and_field(begin);
+  neural_network->load_cache();
+  for (int i=0; i<100; ++i)
+  {
+    Decision dec = neural_network->make_decision(field, false, NULL);
+    last->x = last->x+dec.dx; last->y = last->y + dec.dy;
+    res.push_back(Field_list_element(last->x, last->y));
+    Coord rel_last = transform_to_rel_coord(*last);
+    field->add_pixel(rel_last.x, rel_last.y);
+  }
+  return res;
 }
 
-void Main_controller::process_next_pixel()
+void Main_controller::process_line()
 {
-  
+  list<Field_list_element>::iterator cur_pixel = cur_picture->begin();
+  while ( cur_pixel != cur_picture->end() )
+  {
+    Coord from = transform_to_rel_coord(Coord(cur_pixel->x, cur_pixel->y));
+    ++cur_pixel;
+    Coord to = transform_to_rel_coord(Coord(cur_pixel->x, cur_pixel->y));
+    neural_network->make_decision(field, true, new Decision(to.x - from.x, to.y - from.y));
+    field->add_pixel(to.x, to.y);
+  }
 }
 
 void Main_controller::init_nn_and_field(Coord* bc)
 {
   field = new Field(Bounds(-bc->x, SCREEN_WIDTH - bc->x, -bc->y, SCREEN_HEIGTH - bc->y));
-  Coord begin = transform_to_rel_coord(*bc);
-  field->set_pixel(begin.x, begin.y);
+  field->add_pixel(0, 0);
   neural_network = new Neural_network(Bounds(-bc->x, SCREEN_WIDTH - bc->x, -bc->y, SCREEN_HEIGTH - bc->y));
 }
 
@@ -53,30 +75,32 @@ void Main_controller::main_loop()
         Coord* data = (Coord*) event.data;
         set_begin_coordinates(data);
         init_nn_and_field(data);
+	cur_picture->clear();
         break;
       }
+      case END_DRAW:
+	neural_network->load_cache();
+	process_line();
+	neural_network->save_cache();
+	printf("Finished education!\n");
+	break;
       case DRAW_BY_NEURAL_NETWORK:
-        // TODO:
+      {
+        list<Field_list_element> pic = get_picture();
+	sdl_controller->set_state_of_screen(pic);
+	sdl_controller->redraw();
         break;
+      }
       case SAVE_CACHE:
         neural_network->save_cache();
         break;
     }
     for (int i = 0; i < 100; ++i)
     {
-      vector<Pixel_list_el> line = sdl_controller->process_mouse_movement(last);
+      list<Field_list_element>* line = sdl_controller->process_mouse_movement(last);
       sdl_controller->redraw();
-      if ( !line.empty() )
-      {
-        vector<Pixel_list_el>::iterator cur_pixel = line.begin();
-        while ( cur_pixel != line.end() )
-        {
-           Coord coord = transform_to_rel_coord(cur_pixel->abs_coordinates);
-//           neural_network->make_decision(field, true, cur_pixel->rel_next);
-           field->set_pixel(coord.x, coord.y);
-          ++cur_pixel;
-        }
-      }
+      if ( !(line == NULL) && !line->empty() )
+ 	cur_picture->splice(cur_picture->end(), *line);
     }
     sdl_controller->redraw();
   }

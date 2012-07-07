@@ -49,6 +49,8 @@ Controller_event SDL_controller::get_event()
       case SDL_KEYDOWN:
         if ( event.key.keysym.sym == SDLK_F11 )
           redraw();
+	else if ( event.key.keysym.sym == SDLK_F2 )
+          res.type = DRAW_BY_NEURAL_NETWORK;
         break;
       case SDL_MOUSEBUTTONDOWN:
         if ( event.button.button == SDL_BUTTON_LEFT )
@@ -61,12 +63,11 @@ Controller_event SDL_controller::get_event()
         break;
       case SDL_MOUSEBUTTONUP:
         if ( event.button.button == SDL_BUTTON_LEFT )
+	{
           do_draw = false;
+	  res.type = END_DRAW;
+	}
         break;  
-//       case SDL_MOUSEMOTION:
-//         if ( event.motion.state & SDL_BUTTON(1) )
-//           put_pixel(event.motion.x, event.motion.y);
-//         break;
       case SDL_QUIT:
         printf("Exiting...\n");
         exit(0);
@@ -75,10 +76,10 @@ Controller_event SDL_controller::get_event()
   return res;
 }
 
-vector<Pixel_list_el> SDL_controller::process_mouse_movement(Coord* last_pos)
+list<Field_list_element>* SDL_controller::process_mouse_movement(Coord* last_pos)
 {
   int x = 0, y = 0;
-  vector<Pixel_list_el> res;
+  list<Field_list_element>* res = NULL;
   if ( do_draw )
   {
     SDL_GetMouseState(&x, &y);
@@ -88,9 +89,9 @@ vector<Pixel_list_el> SDL_controller::process_mouse_movement(Coord* last_pos)
   return res;
 }
 
-vector<Pixel_list_el> SDL_controller::draw_line(int x1, int y1, int x2, int y2)
+list<Field_list_element>* SDL_controller::draw_line(int x1, int y1, int x2, int y2)
 {
-  vector<Pixel_list_el> res;
+  list<Field_list_element>* res = new list<Field_list_element>;
   const int deltaX = abs(x2 - x1);
   const int deltaY = abs(y2 - y1);
   const int signX = x1 < x2 ? 1 : -1;
@@ -103,9 +104,8 @@ vector<Pixel_list_el> SDL_controller::draw_line(int x1, int y1, int x2, int y2)
   while (x1 != x2 || y1 != y2)
   {
     put_pixel(x1, y1);
-    
-    if ( lastX != -1 || lastY != -1 )
-      res.push_back( Pixel_list_el(Coord(lastX,lastY), Decision(x1-lastX, y1-lastY) ) );
+  
+    res->push_back( Field_list_element(x1, y1) );
     lastX = x1; lastY = y1;
     
     const int error2 = error * 2;
@@ -132,15 +132,16 @@ void SDL_controller::redraw()
   SDL_Flip(screen);
 }
 
-void SDL_controller::set_state_of_screen(Extended_array<bool>* pixels)
+void SDL_controller::set_state_of_screen(list<Field_list_element> pixels)
 {
   SDL_FillRect(drawingArea, NULL, SDL_MapRGB(drawingArea->format, 255, 255, 255));
   slock(drawingArea);
-  for ( int i = pixels->bounds.min_x; i <= pixels->bounds.max_x; ++i )
-    for ( int j = pixels->bounds.min_y; j <= pixels->bounds.max_y; ++j )
-      if ( pixels->get_element_at(i, j) )
-        // FIXME: wrong coordinates
-        draw_pixel(drawingArea, i, j, 0, 0, 0);
+  list<Field_list_element>::iterator pixel = pixels.begin();
+  while ( pixel != pixels.end() )
+  {
+    draw_pixel(drawingArea, pixel->x, pixel->y, 0, 0, 0);
+    ++pixel;
+  }
   sulock(drawingArea);
 }
 

@@ -10,8 +10,8 @@ class Main_controller
 {
 public:
   Main_controller();
-  void draw_by_neural_network();
-  void process_next_pixel();
+  list<Field_list_element> get_picture();
+  void process_line();
   void init_nn_and_field(Coord* bc);
   void main_loop();
   void set_begin_coordinates(Coord* bc);
@@ -25,6 +25,7 @@ private:
   bool education_mode;
   Coord draw_begin_coordinates;
   Coord* last;
+  list<Field_list_element>* cur_picture;
   
 };
 

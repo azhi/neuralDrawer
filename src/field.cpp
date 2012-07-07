@@ -2,17 +2,17 @@
 
 Field::Field(Bounds bounds) : bounds(bounds)
 {
-  pixels = new Extended_array<bool>(bounds);
+  pixels = new list<Field_list_element>;
 }
 
-bool Field::get_pixel(int x, int y)
+void Field::add_pixel(int x, int y)
 {
-  return pixels->get_element_at(x, y);
+  pixels->push_back(Field_list_element(x, y));
 }
 
-void Field::set_pixel(int x, int y)
+list<Field_list_element>* Field::get_pixels_list()
 {
-  pixels->set_element_at(x, y, 1);
+  return pixels;
 }
 
 void Field::clear()

@@ -18,7 +18,8 @@ public:
   {
     size_x = bounds.max_x - bounds.min_x + 1;
     size_y = bounds.max_y - bounds.min_y + 1;
-    array = (Val_type*) malloc(sizeof(Val_type)*size_x*size_y);  
+    array = (Val_type*) calloc(sizeof(Val_type), size_x*size_y);
+    clear();
   }
   
   Val_type get_element_at(int x, int y)
