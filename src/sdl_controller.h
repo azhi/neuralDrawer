@@ -36,7 +36,7 @@ class SDL_controller
 public:
   SDL_controller();
   void init();
-  void set_state_of_screen(list<Field_list_element> pixels);
+  void set_state_of_screen(list<Field_list_element>* pixels);
   Controller_event get_event();
   void redraw();
   list<Field_list_element>* process_mouse_movement(Coord* last_pos);

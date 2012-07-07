@@ -132,12 +132,12 @@ void SDL_controller::redraw()
   SDL_Flip(screen);
 }
 
-void SDL_controller::set_state_of_screen(list<Field_list_element> pixels)
+void SDL_controller::set_state_of_screen(list<Field_list_element>* pixels)
 {
   SDL_FillRect(drawingArea, NULL, SDL_MapRGB(drawingArea->format, 255, 255, 255));
   slock(drawingArea);
-  list<Field_list_element>::iterator pixel = pixels.begin();
-  while ( pixel != pixels.end() )
+  list<Field_list_element>::iterator pixel = pixels->begin();
+  while ( pixel != pixels->end() )
   {
     draw_pixel(drawingArea, pixel->x, pixel->y, 0, 0, 0);
     ++pixel;

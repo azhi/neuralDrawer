@@ -37,7 +37,7 @@ public:
   
   ~Extended_array()
   {
-    delete array;
+    delete[] array;
   }
   
   list< Element<Val_type> >* get_list(int x, int y)

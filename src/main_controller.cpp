@@ -8,11 +8,11 @@ Main_controller::Main_controller()
   education_mode = true;
 }
 
-list<Field_list_element> Main_controller::get_picture()
+list<Field_list_element>* Main_controller::get_picture()
 {
-  list<Field_list_element> res;
-  Coord* begin = new Coord(100, 100);
-  res.push_back(Field_list_element(begin->x, begin->y));
+  list<Field_list_element>* res = new list<Field_list_element>;
+  Coord* begin = new Coord(200, 20);
+  res->push_back(Field_list_element(begin->x, begin->y));
   set_begin_coordinates(begin);
   init_nn_and_field(begin);
   neural_network->load_cache();
@@ -20,10 +20,11 @@ list<Field_list_element> Main_controller::get_picture()
   {
     Decision dec = neural_network->make_decision(field, false, NULL);
     last->x = last->x+dec.dx; last->y = last->y + dec.dy;
-    res.push_back(Field_list_element(last->x, last->y));
+    res->push_back(Field_list_element(last->x, last->y));
     Coord rel_last = transform_to_rel_coord(*last);
     field->add_pixel(rel_last.x, rel_last.y);
   }
+  delete begin;
   return res;
 }
 
@@ -35,7 +36,9 @@ void Main_controller::process_line()
     Coord from = transform_to_rel_coord(Coord(cur_pixel->x, cur_pixel->y));
     ++cur_pixel;
     Coord to = transform_to_rel_coord(Coord(cur_pixel->x, cur_pixel->y));
-    neural_network->make_decision(field, true, new Decision(to.x - from.x, to.y - from.y));
+    Decision* dec = new Decision(to.x - from.x, to.y - from.y);
+    neural_network->make_decision(field, true, dec);
+    delete dec;
     field->add_pixel(to.x, to.y);
   }
 }
@@ -79,7 +82,10 @@ void Main_controller::main_loop()
         set_begin_coordinates(data);
 	printf("initialazing NN and field...\n");
         init_nn_and_field(data);
-	cur_picture->clear();
+	delete data;
+	delete cur_picture;
+	cur_picture = new list<Field_list_element>;
+// 	cur_picture->clear();
         break;
       }
       case END_DRAW:
@@ -93,8 +99,9 @@ void Main_controller::main_loop()
 	break;
       case DRAW_BY_NEURAL_NETWORK:
       {
-        list<Field_list_element> pic = get_picture();
+        list<Field_list_element>* pic = get_picture();
 	sdl_controller->set_state_of_screen(pic);
+	delete pic;
 	sdl_controller->redraw();
         break;
       }
@@ -108,6 +115,7 @@ void Main_controller::main_loop()
       sdl_controller->redraw();
       if ( !(line == NULL) && !line->empty() )
  	cur_picture->splice(cur_picture->end(), *line);
+      delete line;
     }
     sdl_controller->redraw();
   }

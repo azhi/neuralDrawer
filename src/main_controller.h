@@ -10,7 +10,7 @@ class Main_controller
 {
 public:
   Main_controller();
-  list<Field_list_element> get_picture();
+  list<Field_list_element>* get_picture();
   void process_line();
   void init_nn_and_field(Coord* bc);
   void main_loop();

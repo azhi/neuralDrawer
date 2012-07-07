@@ -30,7 +30,7 @@ double Neuron::get_result_sum(Field* field, long count)
 void Neuron::correct_answer(Field* field, long count)
 {
   list<Field_list_element>* pixels = field->get_pixels_list();
-  Extended_array<bool> corrected = Extended_array<bool>(coeffs->bounds);
+  Extended_array<bool>* corrected = new Extended_array<bool>(coeffs->bounds);
   list<Field_list_element>::iterator pixel = pixels->begin();
   double tmp;
   while ( pixel != pixels->end() )
@@ -42,18 +42,17 @@ void Neuron::correct_answer(Field* field, long count)
 	  coeffs->set_element_at(pixel->x+i, pixel->y+j, count, (coeffs->get_element_at(pixel->x+i, pixel->y+j, count) + 1) / 2.0f);
  	else
 //  	  coeffs->set_element_at(pixel->x+i, pixel->y+j, (coeffs->get_element_at(pixel->x+i, pixel->y+j) + 1) / 2.0f * ((double) ++count/pixels->size()) * sqrt(i*i+j*j)/14410.0f);
-	corrected.set_element_at(pixel->x+i, pixel->y+j, 1, 1);
+	corrected->set_element_at(pixel->x+i, pixel->y+j, 1, 1);
       }
     ++pixel;
   }
   for( int i = coeffs->bounds.min_x; i <= coeffs->bounds.max_x; ++i )
     for( int j = coeffs->bounds.min_y; j <= coeffs->bounds.max_y; ++j )
-      if ( !( (tmp = coeffs->get_element_at(i, j, count)) < 0.00001f) && !corrected.get_element_at(i, j, 1) )
+      if ( !( (tmp = coeffs->get_element_at(i, j, count)) < 0.00001f) && !corrected->get_element_at(i, j, 1) )
       {
-	printf("BEFORE: f corrected coeffs at %d %d, nv: %lf\n", i, j, tmp);
-        coeffs->set_element_at(i, j, count, tmp / 2.0f);
-	printf("AFTER: f corrected coeffs at %d %d, nv: %lf\n", i, j, coeffs->get_element_at(i, j, count));
+	coeffs->set_element_at(i, j, count, tmp / 2.0f);
       }
+  delete corrected;    
 }
 
 void Neuron::load_cache()
