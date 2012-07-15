@@ -29,7 +29,7 @@ Decision Neural_network::make_decision(Field* field, bool do_correction, Decisio
   double result_sums[8];
   for (int i = 0; i < 8; ++i)
   {
-    result_sums[i] = neurons[i]->get_result_sum(field, field->get_size());
+    result_sums[i] = neurons[i]->get_result_sum(field, field->get_used_count());
   }
   double max_sum = 0.0f; int max_sum_index = 0;
   for (int i = 0; i < 8; ++i)
@@ -57,29 +57,29 @@ Decision Neural_network::make_decision(Field* field, bool do_correction, Decisio
     if ( rigth_answer->dx == -1 )
     {
       if ( rigth_answer->dy == -1 )
-        neurons[0]->correct_answer(field, field->get_size());
+        neurons[0]->correct_answer(field, field->get_used_count());
       else if ( rigth_answer->dy == 0 )
-        neurons[1]->correct_answer(field, field->get_size());
+        neurons[1]->correct_answer(field, field->get_used_count());
       else if ( rigth_answer->dy == 1 )
-        neurons[2]->correct_answer(field, field->get_size());
+        neurons[2]->correct_answer(field, field->get_used_count());
     }
     
     if ( rigth_answer->dx == 0 )
     {
       if ( rigth_answer->dy == -1 )
-        neurons[7]->correct_answer(field, field->get_size());
+        neurons[7]->correct_answer(field, field->get_used_count());
       else if ( rigth_answer->dy == 1 )
-        neurons[3]->correct_answer(field, field->get_size());
+        neurons[3]->correct_answer(field, field->get_used_count());
     }
     
     if ( rigth_answer->dx == 1 )
     {
       if ( rigth_answer->dy == -1 )
-        neurons[6]->correct_answer(field, field->get_size());
+        neurons[6]->correct_answer(field, field->get_used_count());
       else if ( rigth_answer->dy == 0 )
-        neurons[5]->correct_answer(field, field->get_size());
+        neurons[5]->correct_answer(field, field->get_used_count());
       else if ( rigth_answer->dy == 1 )
-        neurons[4]->correct_answer(field, field->get_size());
+        neurons[4]->correct_answer(field, field->get_used_count());
     }
   }
   

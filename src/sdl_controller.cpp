@@ -76,10 +76,10 @@ Controller_event SDL_controller::get_event()
   return res;
 }
 
-list<Field_list_element>* SDL_controller::process_mouse_movement(Coord* last_pos)
+list<Coord>* SDL_controller::process_mouse_movement(Coord* last_pos)
 {
   int x = 0, y = 0;
-  list<Field_list_element>* res = NULL;
+  list<Coord>* res = NULL;
   if ( do_draw )
   {
     SDL_GetMouseState(&x, &y);
@@ -89,9 +89,9 @@ list<Field_list_element>* SDL_controller::process_mouse_movement(Coord* last_pos
   return res;
 }
 
-list<Field_list_element>* SDL_controller::draw_line(int x1, int y1, int x2, int y2)
+list<Coord>* SDL_controller::draw_line(int x1, int y1, int x2, int y2)
 {
-  list<Field_list_element>* res = new list<Field_list_element>;
+  list<Coord>* res = new list<Coord>;
   const int deltaX = abs(x2 - x1);
   const int deltaY = abs(y2 - y1);
   const int signX = x1 < x2 ? 1 : -1;
@@ -105,7 +105,7 @@ list<Field_list_element>* SDL_controller::draw_line(int x1, int y1, int x2, int 
   {
     put_pixel(x1, y1);
   
-    res->push_back( Field_list_element(x1, y1) );
+    res->push_back( Coord(x1, y1) );
     lastX = x1; lastY = y1;
     
     const int error2 = error * 2;
@@ -132,14 +132,23 @@ void SDL_controller::redraw()
   SDL_Flip(screen);
 }
 
-void SDL_controller::set_state_of_screen(list<Field_list_element>* pixels)
+bool SDL_controller::check_ranges(int x, int y)
+{
+  if ( x < 0 || x >= SCREEN_WIDTH ||
+       y < 0 || y >= SCREEN_HEIGTH )
+    return false;
+  return true;
+}
+
+void SDL_controller::set_state_of_screen(list<Coord>* pixels)
 {
   SDL_FillRect(drawingArea, NULL, SDL_MapRGB(drawingArea->format, 255, 255, 255));
   slock(drawingArea);
-  list<Field_list_element>::iterator pixel = pixels->begin();
+  list<Coord>::iterator pixel = pixels->begin();
   while ( pixel != pixels->end() )
   {
-    draw_pixel(drawingArea, pixel->x, pixel->y, 0, 0, 0);
+    if ( check_ranges(pixel->x, pixel->y) )
+      draw_pixel(drawingArea, pixel->x, pixel->y, 0, 0, 0);
     ++pixel;
   }
   sulock(drawingArea);

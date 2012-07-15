@@ -2,6 +2,9 @@ cmake_minimum_required (VERSION 2.6)
 
 set(CMAKE_BUILD_TYPE Debug)
 
+#set(CMAKE_C_FLAGS "-O0")
+#set(CMAKE_CXX_FLAGS "-O0")
+
 set (PROJECT
     neuralDrawer)
 
@@ -18,7 +21,7 @@ set (SOURCES
     field.h
     
     
-    extended_array.h
+    coeffs_list.h
 
     sdl_controller.cpp
     sdl_controller.h

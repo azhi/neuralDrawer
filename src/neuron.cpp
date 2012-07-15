@@ -6,7 +6,7 @@
 
 Neuron::Neuron(Bounds bounds, int id) : id(id)
 {
-  coeffs = new Extended_array<double>(bounds);
+  coeffs = new Coeffs_list<double>(bounds);
 }
 
 Neuron::~Neuron()
@@ -17,42 +17,54 @@ Neuron::~Neuron()
 double Neuron::get_result_sum(Field* field, long count)
 {
   double res = 0.0f;
-  list<Field_list_element>* pixels = field->get_pixels_list();
-  list<Field_list_element>::iterator pixel = pixels->begin();
-  while ( pixel != pixels->end() )
+  list<Column>* columns = field->get_columns_list();
+  list<Column>::iterator column = columns->begin();
+  while ( column != columns->end() )
   {
-    res += coeffs->get_element_at(pixel->x, pixel->y, count);
-    ++pixel;
+    int x = column->x;
+    list<int>* pixels = column->pixels;
+    list<int>::iterator pixel_y = pixels->begin();
+    while ( pixel_y != pixels->end() )
+    {
+      res += coeffs->get_element_at(x, *pixel_y, count);
+      ++pixel_y;
+    }
+    ++column;
   }
   return res;
 }
 
 void Neuron::correct_answer(Field* field, long count)
 {
-  list<Field_list_element>* pixels = field->get_pixels_list();
-  Extended_array<bool>* corrected = new Extended_array<bool>(coeffs->bounds);
-  list<Field_list_element>::iterator pixel = pixels->begin();
-  double tmp;
-  while ( pixel != pixels->end() )
+  
+  list<Column>* columns = field->get_columns_list();
+  list<Column>::iterator column = columns->begin();
+  while ( column != columns->end() )
   {
-    for ( int i = -10; i <= 10; ++i )
-      for ( int j = -10; j<= 10; ++j )
-      {
-	if ( i == 0  && j == 0 )
-	  coeffs->set_element_at(pixel->x+i, pixel->y+j, count, (coeffs->get_element_at(pixel->x+i, pixel->y+j, count) + 1) / 2.0f);
- 	else
-//  	  coeffs->set_element_at(pixel->x+i, pixel->y+j, (coeffs->get_element_at(pixel->x+i, pixel->y+j) + 1) / 2.0f * ((double) ++count/pixels->size()) * sqrt(i*i+j*j)/14410.0f);
-	corrected->set_element_at(pixel->x+i, pixel->y+j, 1, 1);
-      }
-    ++pixel;
+    int x = column->x;
+    list<int>* pixels = column->pixels;
+//     printf("Processing next column\nx: %d, count used pixels: %d\n", x, pixels->size());
+    list<int>::iterator pixel_y = pixels->begin();
+    while ( pixel_y != pixels->end() )
+    {
+      coeffs->set_element_at(x, *pixel_y, count,
+                           (coeffs->get_element_at(x, *pixel_y, count) + 1));
+      ++pixel_y;
+    }
+  
+    list< Element<double> >* for_correction = coeffs->get_column_elements(x, count);
+    list< Element<double> >::iterator pixel = for_correction->begin();
+//     printf("For correcting size: %d\n", for_correction->size());
+    while ( pixel != for_correction->end() )
+    {
+//       printf("Correcting element: %d-%d %d %ld-%ld %f\n", pixel->x, x, pixel->y, pixel->pixels_count, count, pixel->val);
+      coeffs->set_element_at(x, pixel->y, count, pixel->val / 2.0f);
+      ++pixel;  
+    }
+    delete for_correction;
+    
+    ++column;
   }
-  for( int i = coeffs->bounds.min_x; i <= coeffs->bounds.max_x; ++i )
-    for( int j = coeffs->bounds.min_y; j <= coeffs->bounds.max_y; ++j )
-      if ( !( (tmp = coeffs->get_element_at(i, j, count)) < 0.00001f) && !corrected->get_element_at(i, j, 1) )
-      {
-	coeffs->set_element_at(i, j, count, tmp / 2.0f);
-      }
-  delete corrected;    
 }
 
 void Neuron::load_cache()
@@ -67,21 +79,18 @@ void Neuron::load_cache()
     int x, y;
     long count;
     double tmp;
-    char end;
     cache >> x; cache >> y;
     cache >> count; cache >> tmp;
-//     cache >> end;
     while ( !cache.eof() )
     {
       coeffs->set_element_at(x, y, count, tmp);
       cache >> x; cache >> y;
       cache >> count; cache >> tmp;
-//       cache >> end;
       ++test;
     }
   }
   printf("%d readed %ld lines\n", id, test);
-  cache.close();  
+  cache.close();
 }
 
 void Neuron::save_cache()
@@ -91,20 +100,14 @@ void Neuron::save_cache()
   std::fstream cache;
   cache.open(path, std::fstream::out);
   if ( cache.is_open() )
-    for (int i = -SCREEN_WIDTH; i <= SCREEN_WIDTH; ++i)
-      for (int j = -SCREEN_HEIGTH; j <= SCREEN_HEIGTH; ++j)
-      {
-	if ( i >= coeffs->bounds.min_x && i <= coeffs->bounds.max_x &&
-	     j >= coeffs->bounds.min_y && j <= coeffs->bounds.max_y )
-	{
-	  list< Element<double> >* all = coeffs->get_list(i, j);
-	  list< Element<double> >::iterator cf = all->begin();
-	  while ( cf != all->end() )
-	  {
-	    cache << i << " " << j << " " << cf->count << " " << cf->val << endl; 
-	    ++cf;
-	  }
-	}
-      }
+  {
+    list< Element<double> >* all = coeffs->get_list();
+    list< Element<double> >::iterator cel = all->begin();
+    while ( cel != all->end() )
+    {
+      cache << cel->x << " " << cel->y << " " << cel->pixels_count << " " << cel->val << endl;
+      ++cel;
+    }
+  }
   cache.close();  
 }

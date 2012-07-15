@@ -36,10 +36,11 @@ class SDL_controller
 public:
   SDL_controller();
   void init();
-  void set_state_of_screen(list<Field_list_element>* pixels);
+  void set_state_of_screen(list<Coord>* pixels);
+  bool check_ranges(int x, int y);
   Controller_event get_event();
   void redraw();
-  list<Field_list_element>* process_mouse_movement(Coord* last_pos);
+  list<Coord>* process_mouse_movement(Coord* last_pos);
 
 private:
   SDL_Surface* screen;
@@ -47,7 +48,7 @@ private:
   bool do_draw;
   
   void put_pixel(int x, int y);
-  list<Field_list_element>* draw_line(int x1, int y1, int x2, int y2);
+  list<Coord>* draw_line(int x1, int y1, int x2, int y2);
   void draw_pixel(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B);
   void slock(SDL_Surface *screen);
   void sulock(SDL_Surface *screen);

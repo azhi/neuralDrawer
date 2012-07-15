@@ -1,7 +1,7 @@
 #ifndef NEURON_H
 #define NEURON_H
 
-#include "extended_array.h"
+#include "coeffs_list.h"
 #include "field.h"
 
 class Neuron
@@ -15,7 +15,7 @@ public:
   void save_cache();
   
 private:
-  Extended_array<double>* coeffs;
+  Coeffs_list<double>* coeffs;
   int id;
   
 };

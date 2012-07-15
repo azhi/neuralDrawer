@@ -2,15 +2,17 @@
 #define FIELD_H
 
 #include <list>
-#include "extended_array.h"
+#include "coeffs_list.h"
 
 using namespace std;
 
-struct Field_list_element
+struct Column
 {
-  int x, y;
-  Field_list_element() : x(0), y(0) {}
-  Field_list_element(int x, int y) : x(x), y(y) {}
+  list<int>* pixels;
+  int x;
+  Column() : pixels(NULL), x(0) {}
+  Column(list<int>* pixels, int x) : pixels(pixels), x(x) {}
+  ~Column() { delete pixels; }
 };
 
 class Field
@@ -19,14 +21,16 @@ public:
   Field(Bounds bounds);
   ~Field();
   void add_pixel(int x, int y);
-  list<Field_list_element>* get_pixels_list();
-  size_t get_size();
+  list<Column>* get_columns_list();
+  size_t get_used_count();
   void clear();
   
   Bounds bounds;
   
 private:  
-  list<Field_list_element>* pixels;
+  list<Column>* columns;
+  long cur_used_count;
+  static bool my_cmp(const Column& c1, const Column& c2);
   
 };
 

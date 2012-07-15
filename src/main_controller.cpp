@@ -4,23 +4,29 @@ Main_controller::Main_controller()
 {
   sdl_controller = new SDL_controller();
   last = new Coord();
-  cur_picture = new list<Field_list_element>;
+  cur_picture = new list<Coord>;
+  field = NULL;
+  neural_network = NULL;
   education_mode = true;
 }
 
-list<Field_list_element>* Main_controller::get_picture()
+list<Coord>* Main_controller::get_picture()
 {
-  list<Field_list_element>* res = new list<Field_list_element>;
+  printf("Starting drawing\n");
+  list<Coord>* res = new list<Coord>;
   Coord* begin = new Coord(200, 20);
-  res->push_back(Field_list_element(begin->x, begin->y));
+  res->push_back(Coord(begin->x, begin->y));
+  printf("Setting begin coord\n");
   set_begin_coordinates(begin);
+  printf("Initialazing NN and field\n");
   init_nn_and_field(begin);
+  printf("Loading cache\n");
   neural_network->load_cache();
   for (int i=0; i<350; ++i)
   {
     Decision dec = neural_network->make_decision(field, false, NULL);
     last->x = last->x+dec.dx; last->y = last->y + dec.dy;
-    res->push_back(Field_list_element(last->x, last->y));
+    res->push_back(Coord(last->x, last->y));
     Coord rel_last = transform_to_rel_coord(*last);
     field->add_pixel(rel_last.x, rel_last.y);
   }
@@ -30,7 +36,7 @@ list<Field_list_element>* Main_controller::get_picture()
 
 void Main_controller::process_line()
 {
-  list<Field_list_element>::iterator cur_pixel = cur_picture->begin();
+  list<Coord>::iterator cur_pixel = cur_picture->begin();
   while ( cur_pixel != cur_picture->end() )
   {
     Coord from = transform_to_rel_coord(Coord(cur_pixel->x, cur_pixel->y));
@@ -45,8 +51,10 @@ void Main_controller::process_line()
 
 void Main_controller::init_nn_and_field(Coord* bc)
 {
-  delete field;
-  delete neural_network;
+  if ( field != NULL )
+    delete field;
+  if ( neural_network != NULL )
+    delete neural_network;
   field = new Field(Bounds(-bc->x, SCREEN_WIDTH - bc->x, -bc->y, SCREEN_HEIGTH - bc->y));
   field->add_pixel(0, 0);
   neural_network = new Neural_network(Bounds(-bc->x, SCREEN_WIDTH - bc->x, -bc->y, SCREEN_HEIGTH - bc->y));
@@ -84,7 +92,7 @@ void Main_controller::main_loop()
         init_nn_and_field(data);
 	delete data;
 	delete cur_picture;
-	cur_picture = new list<Field_list_element>;
+	cur_picture = new list<Coord>;
 // 	cur_picture->clear();
         break;
       }
@@ -99,7 +107,7 @@ void Main_controller::main_loop()
 	break;
       case DRAW_BY_NEURAL_NETWORK:
       {
-        list<Field_list_element>* pic = get_picture();
+        list<Coord>* pic = get_picture();
 	sdl_controller->set_state_of_screen(pic);
 	delete pic;
 	sdl_controller->redraw();
@@ -111,7 +119,7 @@ void Main_controller::main_loop()
     }
     for (int i = 0; i < 100; ++i)
     {
-      list<Field_list_element>* line = sdl_controller->process_mouse_movement(last);
+      list<Coord>* line = sdl_controller->process_mouse_movement(last);
       sdl_controller->redraw();
       if ( !(line == NULL) && !line->empty() )
  	cur_picture->splice(cur_picture->end(), *line);
