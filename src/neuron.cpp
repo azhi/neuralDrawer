@@ -17,12 +17,12 @@ Neuron::~Neuron()
 double Neuron::get_result_sum(Field* field, long count)
 {
   double res = 0.0f;
-  list<Column>* columns = field->get_columns_list();
-  list<Column>::iterator column = columns->begin();
+  list<Column*>* columns = field->get_columns_list();
+  list<Column*>::iterator column = columns->begin();
   while ( column != columns->end() )
   {
-    int x = column->x;
-    list<int>* pixels = column->pixels;
+    int x = (*column)->x;
+    list<int>* pixels = (*column)->pixels;
     list<int>::iterator pixel_y = pixels->begin();
     while ( pixel_y != pixels->end() )
     {
@@ -37,13 +37,12 @@ double Neuron::get_result_sum(Field* field, long count)
 void Neuron::correct_answer(Field* field, long count)
 {
   
-  list<Column>* columns = field->get_columns_list();
-  list<Column>::iterator column = columns->begin();
+  list<Column*>* columns = field->get_columns_list();
+  list<Column*>::iterator column = columns->begin();
   while ( column != columns->end() )
   {
-    int x = column->x;
-    list<int>* pixels = column->pixels;
-//     printf("Processing next column\nx: %d, count used pixels: %d\n", x, pixels->size());
+    int x = (*column)->x;
+    list<int>* pixels = (*column)->pixels;
     list<int>::iterator pixel_y = pixels->begin();
     while ( pixel_y != pixels->end() )
     {
@@ -54,10 +53,8 @@ void Neuron::correct_answer(Field* field, long count)
   
     list< Element<double> >* for_correction = coeffs->get_column_elements(x, count);
     list< Element<double> >::iterator pixel = for_correction->begin();
-//     printf("For correcting size: %d\n", for_correction->size());
     while ( pixel != for_correction->end() )
     {
-//       printf("Correcting element: %d-%d %d %ld-%ld %f\n", pixel->x, x, pixel->y, pixel->pixels_count, count, pixel->val);
       coeffs->set_element_at(x, pixel->y, count, pixel->val / 2.0f);
       ++pixel;  
     }

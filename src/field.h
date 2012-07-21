@@ -11,7 +11,7 @@ struct Column
   list<int>* pixels;
   int x;
   Column() : pixels(NULL), x(0) {}
-  Column(list<int>* pixels, int x) : pixels(pixels), x(x) {}
+  Column(int x) : pixels(new list<int>), x(x) {}
   ~Column() { delete pixels; }
 };
 
@@ -21,16 +21,16 @@ public:
   Field(Bounds bounds);
   ~Field();
   void add_pixel(int x, int y);
-  list<Column>* get_columns_list();
+  list<Column*>* get_columns_list();
   size_t get_used_count();
   void clear();
   
   Bounds bounds;
   
 private:  
-  list<Column>* columns;
+  list<Column*>* columns;
   long cur_used_count;
-  static bool my_cmp(const Column& c1, const Column& c2);
+  static bool my_cmp(const Column* c1, const Column* c2);
   
 };
 

@@ -71,9 +71,6 @@ public:
     typename list< Element<Val_type> >::iterator up = upper_bound(data->begin(), data->end(),
                                                                      el_to_find, my_cmp);
     --up;
-//     printf("Request: x=%d, count=%ld\n", x, count);
-//     printf("Answer: first: %d %d %ld %f\t last: %d %d %ld %f\n", low->x, low->y, low->pixels_count, low->val,
-//            up->x, up->y, up->pixels_count, up->val);
     if ( low == up && ( low->x != x || low->pixels_count != count ) )
       return res;
     res->insert(res->end(), low, ++up);
