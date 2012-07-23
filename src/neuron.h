@@ -1,7 +1,7 @@
 #ifndef NEURON_H
 #define NEURON_H
 
-#include "coeffs_list.h"
+#include "coeffs_map.h"
 #include "field.h"
 
 class Neuron
@@ -15,7 +15,7 @@ public:
   void save_cache();
   
 private:
-  Coeffs_list<double>* coeffs;
+  Coeffs_map* coeffs;
   int id;
   
 };

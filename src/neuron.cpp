@@ -3,10 +3,11 @@
 #include <string.h>
 #include <fstream>
 #include <math.h>
+#include <iostream>
 
 Neuron::Neuron(Bounds bounds, int id) : id(id)
 {
-  coeffs = new Coeffs_list<double>(bounds);
+  coeffs = new Coeffs_map(bounds);
 }
 
 Neuron::~Neuron()
@@ -36,7 +37,6 @@ double Neuron::get_result_sum(Field* field, long count)
 
 void Neuron::correct_answer(Field* field, long count)
 {
-  
   list<Column*>* columns = field->get_columns_list();
   list<Column*>::iterator column = columns->begin();
   while ( column != columns->end() )
@@ -51,11 +51,11 @@ void Neuron::correct_answer(Field* field, long count)
       ++pixel_y;
     }
   
-    list< Element<double> >* for_correction = coeffs->get_column_elements(x, count);
-    list< Element<double> >::iterator pixel = for_correction->begin();
+    list<Element>* for_correction = coeffs->get_column_elements(x, count);
+    list<Element>::iterator pixel = for_correction->begin();
     while ( pixel != for_correction->end() )
     {
-      coeffs->set_element_at(x, pixel->y, count, pixel->val / 2.0f);
+      coeffs->set_element_at(x, pixel->hash_params.y, count, pixel->val / 2.0f);
       ++pixel;  
     }
     delete for_correction;
@@ -96,15 +96,21 @@ void Neuron::save_cache()
   sprintf(path, "cache%d.txt", id);
   std::fstream cache;
   cache.open(path, std::fstream::out);
+  long test = 0;
   if ( cache.is_open() )
   {
-    list< Element<double> >* all = coeffs->get_list();
-    list< Element<double> >::iterator cel = all->begin();
-    while ( cel != all->end() )
+    coeffs_hash_map* all = coeffs->get_data();
+    coeffs_hash_map::iterator el = all->begin();
+    while ( el != all->end() )
     {
-      cache << cel->x << " " << cel->y << " " << cel->pixels_count << " " << cel->val << endl;
-      ++cel;
+      ++test;
+      if ( el->second != 0.0f )
+      {
+        cache << el->first.x << " " << el->first.y << " " << el->first.pixels_count << " " << el->second << endl;
+      }
+      ++el;
     }
   }
+  printf("%d saved %ld lines\n", id, test);
   cache.close();  
 }

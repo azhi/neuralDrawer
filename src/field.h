@@ -2,7 +2,7 @@
 #define FIELD_H
 
 #include <list>
-#include "coeffs_list.h"
+#include "coeffs_map.h"
 
 using namespace std;
 

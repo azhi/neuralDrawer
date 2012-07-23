@@ -22,7 +22,7 @@ list<Coord>* Main_controller::get_picture()
   init_nn_and_field(begin);
   printf("Loading cache\n");
   neural_network->load_cache();
-  for (int i=0; i<300; ++i)
+  for (int i=0; i<800; ++i)
   {
     printf("Getting %d of %d decision\n", i+1, 300);
     Decision dec = neural_network->make_decision(field, false, NULL);

@@ -1,6 +1,7 @@
 *~
 Makefile*
 bin/
+*swp
 
 # CMake generated files
 CMakeCache.txt
