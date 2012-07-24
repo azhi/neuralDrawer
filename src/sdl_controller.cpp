@@ -49,7 +49,7 @@ Controller_event SDL_controller::get_event()
       case SDL_KEYDOWN:
         if ( event.key.keysym.sym == SDLK_F11 )
           redraw();
-	else if ( event.key.keysym.sym == SDLK_F2 )
+        else if ( event.key.keysym.sym == SDLK_F2 )
           res.type = DRAW_BY_NEURAL_NETWORK;
         break;
       case SDL_MOUSEBUTTONDOWN:
@@ -63,14 +63,14 @@ Controller_event SDL_controller::get_event()
         break;
       case SDL_MOUSEBUTTONUP:
         if ( event.button.button == SDL_BUTTON_LEFT )
-	{
+        {
           do_draw = false;
-	  res.type = END_DRAW;
-	}
+          res.type = END_DRAW;
+        }
         break;  
       case SDL_QUIT:
-        printf("Exiting...\n");
-        exit(0);
+        res.type = EXIT;
+        break;
     }
   }
   return res;

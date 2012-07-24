@@ -8,6 +8,8 @@
 #include <list>
 #include <math.h>
 #include <stdexcept>
+#include "coeffs_full_hash.h"
+#include "coeffs_column_hash.h"
 
 using namespace std;
 
@@ -18,40 +20,6 @@ struct Bounds
 						       min_y(min_y), max_y(max_y) {};
 };
 
-struct Hash_params
-{
-  int x,y;
-  long pixels_count;  
-  Hash_params() : x(0), y(0), pixels_count(0) {}
-  Hash_params(int x, int y, long pixels_count) : x(x), y(y), pixels_count(pixels_count) {}
-};
-
-struct Element
-{
-  Hash_params hash_params;
-  double val;
-  Element() : hash_params(), val(0.0f) {}
-  Element(Hash_params hash_params, double val) : hash_params(hash_params), val(val) {}
-};
-
-struct Hash_functor
-{
-  size_t operator()(const Hash_params& hp) const
-  {
-    return hash<int>()(pow(hp.x, 3) + pow(hp.y, 2) + hp.pixels_count);
-  }
-};
-
-struct Equal_functor
-{
-  bool operator()(const Hash_params& hp1, const Hash_params& hp2) const
-  {
-    return hp1.x == hp2.x && hp1.y == hp2.y && hp1.pixels_count == hp2.pixels_count;
-  }
-};
-
-typedef unordered_map<Hash_params, double, Hash_functor, Equal_functor> coeffs_hash_map;
-
 class Coeffs_map
 {
 public:    
@@ -59,63 +27,90 @@ public:
   {
     size_x = bounds.max_x - bounds.min_x + 1;
     size_y = bounds.max_y - bounds.min_y + 1;
-    data = new coeffs_hash_map();
+    all = new coeffs_full_hash_map();
+    columns = new coeffs_column_hash_map();
     clear();
   }
   
   ~Coeffs_map()
   {
-    delete data;
+    // coeffs_full_hash_map::iterator el = all->begin();
+    // while ( el != all->end() )
+    // {
+    //   delete el->second;
+    //   ++el;
+    // }
+    delete all;
+    delete columns;
   }
   
-  coeffs_hash_map* get_data()
+  coeffs_full_hash_map* get_all()
   {
-    return data;
+    return all;
   }
   
   double get_element_at(int x, int y, long pixels_count)
   {
-    Hash_params hp = Hash_params(x, y, pixels_count);
+    Hash_full_params hp = Hash_full_params(x, y, pixels_count);
     double res = 0.0f;
-    coeffs_hash_map::iterator it;
-    if ( ( it = data->find(hp) ) != data->end() )
-      res = it->second;
+    coeffs_full_hash_map::iterator it;
+    if ( ( it = all->find(hp) ) != all->end() )
+      res = *(it->second);
     return res;
   }
   
-  list<Element>* get_column_elements(int x, long count)
+  column_map* get_column_elements(int x, long count)
   {
-    list<Element>* res = new list<Element>;
-
-    for (int i = bounds.min_y; i < bounds.max_y; i++)
-    { 
-      Hash_params hp = Hash_params(x, i, count);
-      double val = 0.0f;
-      coeffs_hash_map::iterator it;
-      if ( ( it = data->find(hp) ) != data->end() )
-        val = it->second;
-      if ( val != 0.0f )
-        res->push_back(Element(hp, val));
-    }
-
+    Hash_column_params hp = Hash_column_params(x, count);
+    column_map* res = NULL;
+    coeffs_column_hash_map::iterator it;
+    if ( ( it = columns->find(hp) ) != columns->end() )
+      res = it->second;
     return res;
   }
   
   void set_element_at(int x, int y, long pixels_count, double val)
   {
-    Hash_params hp = Hash_params(x, y, pixels_count);
-    (*data)[hp] = val;
+    double* pval = NULL;
+    Hash_full_params hfp = Hash_full_params(x, y, pixels_count);
+    if ( all->count(hfp) )
+      *( (*all)[hfp] ) = val;
+    else
+    {
+      pval = new double;
+      *pval = val;
+      (*all)[hfp] = pval;
+    }
+
+    Hash_column_params hcp = Hash_column_params(x, pixels_count);
+    column_map* pc = NULL;
+    if ( columns->count(hcp) )
+    {
+      pc = (*columns)[hcp];
+    }
+    else
+    {
+      pc = new column_map;
+      (*columns)[hcp] = pc;
+    }
+
+    if ( pc->count(y) )
+      *( (*pc)[y] ) = val;
+    else
+      (*pc)[y] = pval;
   }
   
   void clear()
   {
-    data->clear();
+    all->clear();
+    columns->clear();
   }
   
   Bounds bounds;
 
 private:
-  coeffs_hash_map* data;
+  coeffs_full_hash_map* all;
+  coeffs_column_hash_map* columns;
   int size_x, size_y;
   
 };

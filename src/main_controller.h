@@ -10,6 +10,7 @@ class Main_controller
 {
 public:
   Main_controller();
+  ~Main_controller();
   list<Coord>* get_picture();
   void process_line();
   void init_nn_and_field(Coord* bc);

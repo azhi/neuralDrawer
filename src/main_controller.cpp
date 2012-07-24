@@ -10,6 +10,16 @@ Main_controller::Main_controller()
   education_mode = true;
 }
 
+Main_controller::~Main_controller()
+{
+  delete sdl_controller;
+  delete last;
+  if ( field != NULL )
+    delete field;
+  if ( neural_network != NULL )
+    delete neural_network;
+}
+
 list<Coord>* Main_controller::get_picture()
 {
   printf("Starting drawing\n");
@@ -22,7 +32,7 @@ list<Coord>* Main_controller::get_picture()
   init_nn_and_field(begin);
   printf("Loading cache\n");
   neural_network->load_cache();
-  for (int i=0; i<800; ++i)
+  for (int i=0; i<1550; ++i)
   {
     printf("Getting %d of %d decision\n", i+1, 300);
     Decision dec = neural_network->make_decision(field, false, NULL);
@@ -87,43 +97,45 @@ void Main_controller::main_loop()
       case BEGIN_DRAW:
       {
         Coord* data = (Coord*) event.data;
-	printf("setting begin coordinates...\n");
+        printf("setting begin coordinates...\n");
         set_begin_coordinates(data);
-	printf("initialazing NN and field...\n");
+        printf("initialazing NN and field...\n");
         init_nn_and_field(data);
-	delete data;
-	delete cur_picture;
-	cur_picture = new list<Coord>;
-// 	cur_picture->clear();
+        delete data;
+        delete cur_picture;
+        cur_picture = new list<Coord>;
+        // 	cur_picture->clear();
         break;
       }
       case END_DRAW:
-	printf("loading cache...\n");
-	neural_network->load_cache();
-	printf("starting processing line...\n");
-	process_line();
-	printf("saving cache...\n");
-	neural_network->save_cache();
-	printf("Finished education!\n");
-	break;
+        printf("loading cache...\n");
+        neural_network->load_cache();
+        printf("starting processing line...\n");
+        process_line();
+        printf("saving cache...\n");
+        neural_network->save_cache();
+        printf("Finished education!\n");
+        break;
       case DRAW_BY_NEURAL_NETWORK:
       {
         list<Coord>* pic = get_picture();
-	sdl_controller->set_state_of_screen(pic);
-	delete pic;
-	sdl_controller->redraw();
+        sdl_controller->set_state_of_screen(pic);
+        delete pic;
+        sdl_controller->redraw();
         break;
       }
       case SAVE_CACHE:
         neural_network->save_cache();
         break;
+      case EXIT:
+        return;
     }
     for (int i = 0; i < 100; ++i)
     {
       list<Coord>* line = sdl_controller->process_mouse_movement(last);
       sdl_controller->redraw();
       if ( !(line == NULL) && !line->empty() )
- 	cur_picture->splice(cur_picture->end(), *line);
+        cur_picture->splice(cur_picture->end(), *line);
       delete line;
     }
     sdl_controller->redraw();

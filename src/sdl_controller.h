@@ -22,6 +22,7 @@ struct Coord
 #define END_DRAW 2
 #define DRAW_BY_NEURAL_NETWORK 4
 #define SAVE_CACHE 8
+#define EXIT 16
 
 struct Controller_event
 {

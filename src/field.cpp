@@ -4,7 +4,12 @@
 Field::Field(Bounds bounds) : bounds(bounds)
 {
   columns = new list<Column*>;
-  clear();
+  for (int i = bounds.min_x; i <= bounds.max_x; ++i)
+  {
+    Column* col = new Column(i);
+    columns->push_back(col);
+  }
+  cur_used_count = 0;  
 }
 
 Field::~Field()
@@ -38,10 +43,11 @@ size_t Field::get_used_count()
 
 void Field::clear()
 {
-  for (int i = bounds.min_x; i <= bounds.max_x; ++i)
+  list<Column*>::iterator column = columns->begin();
+  while ( column != columns->end() )
   {
-    Column* col = new Column(i);
-    columns->push_back(col);
+    (*column)->pixels->clear();
+    ++column;
   }
   cur_used_count = 0;  
 }

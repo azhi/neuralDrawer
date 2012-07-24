@@ -46,19 +46,24 @@ void Neuron::correct_answer(Field* field, long count)
     list<int>::iterator pixel_y = pixels->begin();
     while ( pixel_y != pixels->end() )
     {
+      // printf("get %f element\n", (coeffs->get_element_at(x, *pixel_y, count) + 1));
       coeffs->set_element_at(x, *pixel_y, count,
-                           (coeffs->get_element_at(x, *pixel_y, count) + 1));
+          (coeffs->get_element_at(x, *pixel_y, count) + 1));
       ++pixel_y;
     }
+
   
-    list<Element>* for_correction = coeffs->get_column_elements(x, count);
-    list<Element>::iterator pixel = for_correction->begin();
-    while ( pixel != for_correction->end() )
+    column_map* for_correction = coeffs->get_column_elements(x, count);
+    if ( for_correction != NULL )
     {
-      coeffs->set_element_at(x, pixel->hash_params.y, count, pixel->val / 2.0f);
-      ++pixel;  
+      column_map::iterator el = for_correction->begin();
+      while ( el != for_correction->end() )
+      {
+        // printf("set %f to %f element\n", *(el->second), (double) *(el->second) / 2.0f);
+        coeffs->set_element_at(x, el->first, count, (double) *(el->second) / 2.0f);
+        ++el;  
+      }
     }
-    delete for_correction;
     
     ++column;
   }
@@ -66,10 +71,11 @@ void Neuron::correct_answer(Field* field, long count)
 
 void Neuron::load_cache()
 {
-  char* path = (char*) malloc(sizeof(char)*11);
+  char* path = new char[11];
   sprintf(path, "cache%d.txt", id);
   std::fstream cache;
   cache.open(path, std::fstream::in);
+  delete[] path;
   long test = 0;
   if ( cache.is_open() )
   {
@@ -92,21 +98,22 @@ void Neuron::load_cache()
 
 void Neuron::save_cache()
 {
-  char* path = (char*) malloc(sizeof(char)*11);
+  char* path = new char[11];
   sprintf(path, "cache%d.txt", id);
   std::fstream cache;
   cache.open(path, std::fstream::out);
+  delete[] path;
   long test = 0;
   if ( cache.is_open() )
   {
-    coeffs_hash_map* all = coeffs->get_data();
-    coeffs_hash_map::iterator el = all->begin();
+    coeffs_full_hash_map* all = coeffs->get_all();
+    coeffs_full_hash_map::iterator el = all->begin();
     while ( el != all->end() )
     {
       ++test;
-      if ( el->second != 0.0f )
+      if ( *(el->second) != 0.0f )
       {
-        cache << el->first.x << " " << el->first.y << " " << el->first.pixels_count << " " << el->second << endl;
+        cache << el->first.x << " " << el->first.y << " " << el->first.pixels_count << " " << *(el->second) << endl;
       }
       ++el;
     }
